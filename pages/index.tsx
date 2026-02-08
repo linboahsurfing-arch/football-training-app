@@ -39,29 +39,29 @@ const DRILLS = [
 
 export default function FootballTrainingApp() {
   /* ------------------ helpers ------------------ */
-  const calculateStreak = (hist) => {
-    let streak = 0;
-    let day = new Date();
-    while (true) {
-      const key = day.toISOString().slice(0, 10);
-      if (hist[key]) {
-        streak++;
-        day.setDate(day.getDate() - 1);
-      } else break;
-    }
-    return streak;
-  };
+  const calculateStreak = (hist: Record<string, boolean>) => {
+  let streak = 0;
+  let day = new Date();
+  while (true) {
+    const key = day.toISOString().slice(0, 10);
+    if (hist[key]) {
+      streak++;
+      day.setDate(day.getDate() - 1);
+    } else break;
+  }
+  return streak;
+};
 
-  const countThisWeek = (hist) => {
-    const now = new Date();
-    let count = 0;
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(now);
-      d.setDate(now.getDate() - i);
-      if (hist[d.toISOString().slice(0, 10)]) count++;
-    }
-    return count;
-  };
+const countThisWeek = (hist: Record<string, boolean>) => {
+  const now = new Date();
+  let count = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - i);
+    if (hist[d.toISOString().slice(0, 10)]) count++;
+  }
+  return count;
+};
 
   /* ------------------ state ------------------ */
   const [profile, setProfile] = useState(() => {
