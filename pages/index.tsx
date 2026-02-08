@@ -2,129 +2,127 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-const DRILLS = [
-  { id: 1, name: "Ball Control - Cones", category: "Technical", duration: 10, description: "Dribble through cones using both feet. Focus on close control.", goal: "control" },
-  { id: 2, name: "Passing Against Wall", category: "Technical", duration: 8, description: "Pass against a wall using inside of foot. Alternate feet.", goal: "control" },
-  { id: 3, name: "Sprint Intervals", category: "Fitness", duration: 12, description: "Sprint 20m, jog back. Repeat 6 times.", goal: "fitness" },
-  { id: 4, name: "Shooting Accuracy", category: "Shooting", duration: 10, description: "Aim for corners. 20 shots total.", goal: "shooting" }
-];
-
+type Level = "beginner" | "intermediate" | "advanced";
+type Goal = "control" | "fitness" | "shooting" | "weekly";
 type History = Record<string, boolean>;
 
+const DRILLS = {
+  beginner: [
+    { id: 1, name: "Ball Control - Cones", duration: 10, goal: "control", description: "Slow dribble through cones using both feet." },
+    { id: 2, name: "Wall Passing", duration: 8, goal: "control", description: "Pass against a wall. Two touches max." },
+    { id: 3, name: "Light Jog + Sprint", duration: 10, goal: "fitness", description: "Jog then sprint short distances." },
+    { id: 4, name: "Target Shooting", duration: 10, goal: "shooting", description: "Aim for large target zones." }
+  ],
+  intermediate: [
+    { id: 5, name: "First Touch Box", duration: 12, goal: "control", description: "Control and turn inside a marked box." },
+    { id: 6, name: "One-Touch Passing", duration: 10, goal: "control", description: "One-touch passes against a wall." },
+    { id: 7, name: "Sprint Intervals", duration: 15, goal: "fitness", description: "Sprint 20m, jog back. Repeat." },
+    { id: 8, name: "Corner Shooting", duration: 12, goal: "shooting", description: "Aim for corners under light pressure." }
+  ],
+  advanced: [
+    { id: 9, name: "Close Control Speed Dribble", duration: 15, goal: "control", description: "High-speed close control dribbling." },
+    { id: 10, name: "Weak Foot Passing", duration: 10, goal: "control", description: "Pass using only weak foot." },
+    { id: 11, name: "HIIT Football Runs", duration: 18, goal: "fitness", description: "High-intensity interval runs." },
+    { id: 12, name: "One-Touch Finishing", duration: 15, goal: "shooting", description: "Finish first-time shots." }
+  ]
+};
+
+const WEEKLY_PLAN = {
+  beginner: [
+    "Ball Control",
+    "Fitness",
+    "Shooting",
+    "Ball Control",
+    "Fitness",
+    "Free Play",
+    "Rest"
+  ],
+  intermediate: [
+    "Ball Control",
+    "Fitness",
+    "Shooting",
+    "Ball Control",
+    "Fitness",
+    "Match Play",
+    "Recovery"
+  ],
+  advanced: [
+    "Technical",
+    "HIIT Fitness",
+    "Finishing",
+    "Technical",
+    "Fitness",
+    "Match Intensity",
+    "Recovery"
+  ]
+};
+
 export default function FootballTrainingApp() {
-  const calculateStreak = (hist: History) => {
-    let streak = 0;
-    let day = new Date();
-    while (true) {
-      const key = day.toISOString().slice(0, 10);
-      if (hist[key]) {
-        streak++;
-        day.setDate(day.getDate() - 1);
-      } else break;
-    }
-    return streak;
-  };
-
-  const countThisWeek = (hist: History) => {
-    const now = new Date();
-    let count = 0;
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(now);
-      d.setDate(now.getDate() - i);
-      if (hist[d.toISOString().slice(0, 10)]) count++;
-    }
-    return count;
-  };
-
-  const [profile, setProfile] = useState({ age: "teen", level: "beginner", position: "any" });
-  const [goal, setGoal] = useState<"control" | "fitness" | "shooting">("control");
+  const [level, setLevel] = useState<Level>("beginner");
+  const [goal, setGoal] = useState<Goal>("control");
   const [completed, setCompleted] = useState<number[]>([]);
   const [history, setHistory] = useState<History>({});
 
   useEffect(() => {
-    const savedProfile = localStorage.getItem("playerProfile");
-    if (savedProfile) setProfile(JSON.parse(savedProfile));
-
-    const savedHistory = localStorage.getItem("trainingHistory");
-    if (savedHistory) setHistory(JSON.parse(savedHistory));
+    const saved = localStorage.getItem("trainingHistory");
+    if (saved) setHistory(JSON.parse(saved));
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem("playerProfile", JSON.stringify(profile));
-  }, [profile]);
 
   useEffect(() => {
     localStorage.setItem("trainingHistory", JSON.stringify(history));
   }, [history]);
 
-  const todaysDrills = DRILLS.filter((d) => d.goal === goal);
+  const drills = DRILLS[level].filter(d => goal === "weekly" || d.goal === goal);
 
   const toggleComplete = (id: number) => {
-    setCompleted((prev) => {
-      const updated = prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id];
+    setCompleted(prev => {
+      const updated = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
       const today = new Date().toISOString().slice(0, 10);
-      setHistory((h) => ({ ...h, [today]: updated.length === todaysDrills.length }));
+      setHistory(h => ({ ...h, [today]: true }));
       return updated;
     });
   };
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6 bg-gradient-to-b from-green-50 to-white min-h-screen">
-      <h1 className="text-3xl font-extrabold tracking-tight">⚽ Daily Football Training</h1>
-      <p className="text-gray-400 text-sm">Profile: {profile.age} • {profile.level} • {profile.position}</p>
-      <p className="text-gray-500">Choose your profile</p>
+    <div className="p-6 max-w-2xl mx-auto space-y-6">
+      <h1 className="text-3xl font-bold">Football Training Planner</h1>
 
-      <div className="grid grid-cols-3 gap-2">
-        <select className="border rounded p-2" value={profile.age} onChange={(e) => setProfile({ ...profile, age: e.target.value })}>
-          <option value="youth">Youth</option>
-          <option value="teen">Teen</option>
-          <option value="adult">Adult</option>
-        </select>
-        <select className="border rounded p-2" value={profile.level} onChange={(e) => setProfile({ ...profile, level: e.target.value })}>
-          <option value="beginner">Beginner</option>
-          <option value="intermediate">Intermediate</option>
-          <option value="advanced">Advanced</option>
-        </select>
-        <select className="border rounded p-2" value={profile.position} onChange={(e) => setProfile({ ...profile, position: e.target.value })}>
-          <option value="any">Any Position</option>
-          <option value="defender">Defender</option>
-          <option value="midfielder">Midfielder</option>
-          <option value="forward">Forward</option>
-        </select>
-      </div>
-
-      <p className="text-gray-500">Choose your focus for today</p>
+      <select className="border p-2 rounded" value={level} onChange={e => setLevel(e.target.value as Level)}>
+        <option value="beginner">Beginner</option>
+        <option value="intermediate">Intermediate</option>
+        <option value="advanced">Advanced</option>
+      </select>
 
       <div className="flex gap-2 flex-wrap">
-        <Button variant={goal === "control" ? "default" : "secondary"} onClick={() => setGoal("control")}>Ball Control</Button>
-        <Button variant={goal === "fitness" ? "default" : "secondary"} onClick={() => setGoal("fitness")}>Fitness</Button>
-        <Button variant={goal === "shooting" ? "default" : "secondary"} onClick={() => setGoal("shooting")}>Shooting</Button>
+        <Button onClick={() => setGoal("control")}>Control</Button>
+        <Button onClick={() => setGoal("fitness")}>Fitness</Button>
+        <Button onClick={() => setGoal("shooting")}>Shooting</Button>
+        <Button onClick={() => setGoal("weekly")}>Weekly Plan</Button>
       </div>
 
-      {todaysDrills.map((drill) => (
-        <Card key={drill.id} className="rounded-2xl shadow hover:shadow-lg transition-shadow">
-          <CardContent className="p-4 space-y-2">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">{drill.name}</h2>
-              <span className="text-sm text-gray-400">{drill.duration} min</span>
-            </div>
-            <p className="text-sm text-gray-600">{drill.description}</p>
-            <Button onClick={() => toggleComplete(drill.id)} className="mt-2 w-full" variant={completed.includes(drill.id) ? "secondary" : "default"}>
-              {completed.includes(drill.id) ? "Completed ✅" : "Mark Complete"}
-            </Button>
+      {goal === "weekly" ? (
+        <Card>
+          <CardContent className="space-y-2">
+            <h2 className="font-semibold">Weekly Plan ({level})</h2>
+            {WEEKLY_PLAN[level].map((d, i) => (
+              <div key={i}>Day {i + 1}: {d}</div>
+            ))}
           </CardContent>
         </Card>
-      ))}
-
-      <div className="border-t pt-4 space-y-2 bg-white rounded-xl p-4 shadow-sm">
-        <h2 className="text-lg font-semibold">📊 Progress</h2>
-        <p className="text-sm text-gray-600">🔥 Streak: {calculateStreak(history)} days</p>
-        <p className="text-sm text-gray-600">✅ Days trained this week: {countThisWeek(history)}</p>
-      </div>
-
-      <div className="text-sm text-gray-500 pt-2">
-        Completed {completed.length} / {todaysDrills.length} drills today
-      </div>
+      ) : (
+        drills.map(drill => (
+          <Card key={drill.id}>
+            <CardContent className="space-y-2">
+              <h2 className="font-semibold">{drill.name}</h2>
+              <p className="text-sm">{drill.description}</p>
+              <p className="text-xs">{drill.duration} minutes</p>
+              <Button onClick={() => toggleComplete(drill.id)}>
+                {completed.includes(drill.id) ? "Completed" : "Mark Complete"}
+              </Button>
+            </CardContent>
+          </Card>
+        ))
+      )}
     </div>
   );
 }
