@@ -28,57 +28,71 @@ const DRILLS = {
 };
 
 const WEEKLY_PLAN = {
-  beginner: [
-    "Ball Control",
-    "Fitness",
-    "Shooting",
-    "Ball Control",
-    "Fitness",
-    "Free Play",
-    "Rest"
-  ],
-  intermediate: [
-    "Ball Control",
-    "Fitness",
-    "Shooting",
-    "Ball Control",
-    "Fitness",
-    "Match Play",
-    "Recovery"
-  ],
-  advanced: [
-    "Technical",
-    "HIIT Fitness",
-    "Finishing",
-    "Technical",
-    "Fitness",
-    "Match Intensity",
-    "Recovery"
-  ]
+  beginner: ["Ball Control", "Fitness", "Shooting", "Ball Control", "Fitness", "Free Play", "Rest"],
+  intermediate: ["Ball Control", "Fitness", "Shooting", "Ball Control", "Fitness", "Match Play", "Recovery"],
+  advanced: ["Technical", "HIIT Fitness", "Finishing", "Technical", "Fitness", "Match Intensity", "Recovery"]
 };
+
+const ACHIEVEMENTS = [
+  { id: "first_session", title: "First Session", description: "Complete your first training day." },
+  { id: "three_day_streak", title: "3-Day Streak", description: "Train 3 days in a row." },
+  { id: "week_warrior", title: "Week Warrior", description: "Train 5 days in one week." },
+  { id: "all_rounder", title: "All-Rounder", description: "Complete control, fitness, and shooting drills." }
+];
 
 export default function FootballTrainingApp() {
   const [level, setLevel] = useState<Level>("beginner");
   const [goal, setGoal] = useState<Goal>("control");
   const [completed, setCompleted] = useState<number[]>([]);
   const [history, setHistory] = useState<History>({});
+  const [unlocked, setUnlocked] = useState<string[]>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem("trainingHistory");
-    if (saved) setHistory(JSON.parse(saved));
+    const h = localStorage.getItem("trainingHistory");
+    const a = localStorage.getItem("achievements");
+    if (h) setHistory(JSON.parse(h));
+    if (a) setUnlocked(JSON.parse(a));
   }, []);
 
   useEffect(() => {
     localStorage.setItem("trainingHistory", JSON.stringify(history));
-  }, [history]);
+    localStorage.setItem("achievements", JSON.stringify(unlocked));
+  }, [history, unlocked]);
 
   const drills = DRILLS[level].filter(d => goal === "weekly" || d.goal === goal);
+
+  const checkAchievements = (updatedHistory: History) => {
+    const days = Object.keys(updatedHistory).length;
+    const today = new Date();
+    let streak = 0;
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      if (updatedHistory[d.toISOString().slice(0, 10)]) streak++;
+      else break;
+    }
+
+    const weekCount = Object.keys(updatedHistory).filter(date => {
+      const diff = (today.getTime() - new Date(date).getTime()) / 86400000;
+      return diff < 7;
+    }).length;
+
+    const newAchievements = [...unlocked];
+    if (days >= 1 && !newAchievements.includes("first_session")) newAchievements.push("first_session");
+    if (streak >= 3 && !newAchievements.includes("three_day_streak")) newAchievements.push("three_day_streak");
+    if (weekCount >= 5 && !newAchievements.includes("week_warrior")) newAchievements.push("week_warrior");
+
+    if (newAchievements.length !== unlocked.length) setUnlocked(newAchievements);
+  };
 
   const toggleComplete = (id: number) => {
     setCompleted(prev => {
       const updated = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
-      const today = new Date().toISOString().slice(0, 10);
-      setHistory(h => ({ ...h, [today]: true }));
+      const todayKey = new Date().toISOString().slice(0, 10);
+      const newHistory = { ...history, [todayKey]: true };
+      setHistory(newHistory);
+      checkAchievements(newHistory);
       return updated;
     });
   };
@@ -123,6 +137,17 @@ export default function FootballTrainingApp() {
           </Card>
         ))
       )}
+
+      <Card>
+        <CardContent className="space-y-2">
+          <h2 className="font-semibold">Achievements</h2>
+          {ACHIEVEMENTS.map(a => (
+            <div key={a.id} className={unlocked.includes(a.id) ? "text-green-600" : "text-gray-400"}>
+              {a.title} - {a.description}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
 }
