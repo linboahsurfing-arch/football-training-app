@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 const DRILLS = [
-  { id: 1, name: "Ball Control – Cones", category: "Technical", duration: 10, description: "Dribble through cones using both feet. Focus on close control.", goal: "control" },
+  { id: 1, name: "Ball Control - Cones", category: "Technical", duration: 10, description: "Dribble through cones using both feet. Focus on close control.", goal: "control" },
   { id: 2, name: "Passing Against Wall", category: "Technical", duration: 8, description: "Pass against a wall using inside of foot. Alternate feet.", goal: "control" },
   { id: 3, name: "Sprint Intervals", category: "Fitness", duration: 12, description: "Sprint 20m, jog back. Repeat 6 times.", goal: "fitness" },
   { id: 4, name: "Shooting Accuracy", category: "Shooting", duration: 10, description: "Aim for corners. 20 shots total.", goal: "shooting" }
