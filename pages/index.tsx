@@ -12,7 +12,6 @@ const DRILLS = [
 type History = Record<string, boolean>;
 
 export default function FootballTrainingApp() {
-  /* ------------------ helpers ------------------ */
   const calculateStreak = (hist: History) => {
     let streak = 0;
     let day = new Date();
@@ -37,13 +36,11 @@ export default function FootballTrainingApp() {
     return count;
   };
 
-  /* ------------------ state ------------------ */
   const [profile, setProfile] = useState({ age: "teen", level: "beginner", position: "any" });
   const [goal, setGoal] = useState<"control" | "fitness" | "shooting">("control");
   const [completed, setCompleted] = useState<number[]>([]);
   const [history, setHistory] = useState<History>({});
 
-  /* ------------------ persist to localStorage ------------------ */
   useEffect(() => {
     const savedProfile = localStorage.getItem("playerProfile");
     if (savedProfile) setProfile(JSON.parse(savedProfile));
@@ -60,10 +57,8 @@ export default function FootballTrainingApp() {
     localStorage.setItem("trainingHistory", JSON.stringify(history));
   }, [history]);
 
-  /* ------------------ computed ------------------ */
   const todaysDrills = DRILLS.filter((d) => d.goal === goal);
 
-  /* ------------------ actions ------------------ */
   const toggleComplete = (id: number) => {
     setCompleted((prev) => {
       const updated = prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id];
@@ -75,8 +70,8 @@ export default function FootballTrainingApp() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6 bg-gradient-to-b from-green-50 to-white min-h-screen">
-      <h1 className="text-3xl font-extrabold tracking-tight">? Daily Football Training</h1>
-      <p className="text-gray-400 text-sm">Profile: {profile.age} � {profile.level} � {profile.position}</p>
+      <h1 className="text-3xl font-extrabold tracking-tight">⚽ Daily Football Training</h1>
+      <p className="text-gray-400 text-sm">Profile: {profile.age} • {profile.level} • {profile.position}</p>
       <p className="text-gray-500">Choose your profile</p>
 
       <div className="grid grid-cols-3 gap-2">
@@ -115,16 +110,16 @@ export default function FootballTrainingApp() {
             </div>
             <p className="text-sm text-gray-600">{drill.description}</p>
             <Button onClick={() => toggleComplete(drill.id)} className="mt-2 w-full" variant={completed.includes(drill.id) ? "secondary" : "default"}>
-              {completed.includes(drill.id) ? "Completed ?" : "Mark Complete"}
+              {completed.includes(drill.id) ? "Completed ✅" : "Mark Complete"}
             </Button>
           </CardContent>
         </Card>
       ))}
 
       <div className="border-t pt-4 space-y-2 bg-white rounded-xl p-4 shadow-sm">
-        <h2 className="text-lg font-semibold">?? Progress</h2>
-        <p className="text-sm text-gray-600">?? Streak: {calculateStreak(history)} days</p>
-        <p className="text-sm text-gray-600">? Days trained this week: {countThisWeek(history)}</p>
+        <h2 className="text-lg font-semibold">📊 Progress</h2>
+        <p className="text-sm text-gray-600">🔥 Streak: {calculateStreak(history)} days</p>
+        <p className="text-sm text-gray-600">✅ Days trained this week: {countThisWeek(history)}</p>
       </div>
 
       <div className="text-sm text-gray-500 pt-2">
